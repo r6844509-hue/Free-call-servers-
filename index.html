@@ -39,17 +39,27 @@
   .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
   .tile{position:relative;border-radius:10px;overflow:hidden;cursor:pointer;min-height:120px;background:#111}
   
-  /* --- এইখানে পরিবর্তন করা হয়েছে --- */
   .tile img{
     width:100%;height:100%;object-fit:cover;display:block;
     transform:scale(1.03);
-    transition: transform .28s ease; /* শুধুমাত্র transform ট্রানজিশন রাখা হয়েছে */
+    transition: transform .28s ease;
   }
   .tile:hover img{
-    transform:scale(1.1); /* হোভার করলে ছবি জুম হবে */
+    transform:scale(1.1);
   }
   
   .tile .play{position:absolute;inset:auto 10px 10px 10px;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.55);font-size:13px;color:#fff;backdrop-filter:blur(3px); z-index: 2;}
+  
+  /* --- নতুন ভিডিও আইকন স্টাইল --- */
+  .tile.is-video .play{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+  }
+  .tile.is-video svg{
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+  }
 
   /* sticky CTA */
   .sticky{position:fixed;right:18px;bottom:18px;background:linear-gradient(90deg,var(--accent),#ff6aa8);color:#fff;padding:12px 16px;border-radius:999px;z-index:999;box-shadow:0 12px 30px rgba(0,0,0,0.45);font-weight:700;cursor:pointer;}
@@ -66,6 +76,10 @@
   /* exit popup */
   .exit-popup{position:fixed;inset:auto 18px 90px 18px;padding:14px;background:linear-gradient(90deg,#1b001b,#2b002b);border-radius:12px;z-index:999;display:none}
   .counter{color:#ffd6ee;margin-top:8px;font-weight:700}
+  
+  /* --- নতুন মাইক্রোকপি স্টাইল --- */
+  .microcopy{font-size:12px;opacity:0.7;margin-top:8px;text-align:center;}
+
 
   @media(max-width:680px){
     .gallery{grid-template-columns:repeat(2,1fr)}
@@ -121,9 +135,18 @@
       <div style="background:linear-gradient(180deg,#1a001a,#2b002b);padding:18px;border-radius:12px">
         <div style="font-weight:700;color:var(--accent)">Quick Unlock</div>
         <div style="margin-top:8px">Click any preview to open — a new tab with premium access will open.</div>
-        <div style="margin-top:12px">
+        
+        <!-- নতুন টাইমার এখানে যোগ করা হয়েছে -->
+        <div id="countdown" style="margin-top:16px;background:rgba(0,0,0,0.2);padding:8px 12px;border-radius:8px;text-align:center;">
+            <span style="opacity:0.8;font-size:14px;">Free access offer ends in:</span>
+            <span id="timer" style="font-weight:700;color:#ffd6ee;font-size:18px;margin-left:8px;">08:45</span>
+        </div>
+
+        <div style="margin-top:12px; text-align:center;">
           <a class="btn" id="manualUnlock">Unlock Now</a>
           <a class="btn ghost" href="#" onclick="alert('Use the teasers above!')">More teasers</a>
+          <!-- নতুন মাইক্রোকপি এখানে যোগ করা হয়েছে -->
+          <div class="microcopy">✅ Instant & Free Access</div>
         </div>
         <div style="margin-top:10px;font-size:13px;opacity:0.9">Tip: Share this link in profile/bio for best results. Avoid spamming comments.</div>
       </div>
@@ -150,24 +173,21 @@ const ADSTERRA_LINK = "https://www.revenuecpmgate.com/i0x3kph6id?key=294d3e34c4c
 
 // গ্যালারির ছবিগুলো এখানে যোগ বা পরিবর্তন করুন
 const galleryImages = [
-  "https://files.catbox.moe/m6mcay.jpg", // উদাহরণ ছবি ১
-  "https://files.catbox.moe/hssrz2.jpg", // উদাহরণ ছবি ২
-  "https://files.catbox.moe/r4ba6r.jpg", // উদাহরণ ছবি ৩
-  "https://i.postimg.cc/Qt24GDQQ/pretty-lady-orange-dress-sitting-looking-far-nature-daytime.jpg", // উদাহরণ ছবি ৪
-  "https://i.postimg.cc/wvffWJMd/photo-1515161318750-781d6122e367.jpg", // উদাহরণ ছবি ৫
-  "https://i.postimg.cc/66npx39n/Screenshot-2025-10-03-14-27-44-159-com-venter-hopweb.jpg"  // উদাহরণ ছবি ৬
+  { src: "https://files.catbox.moe/m6mcay.jpg", type: "image" },
+  { src: "https://files.catbox.moe/hssrz2.jpg", type: "video" }, // <-- ভিডিও
+  { src: "https://files.catbox.moe/r4ba6r.jpg", type: "image" },
+  { src: "https://i.postimg.cc/Qt24GDQQ/pretty-lady-orange-dress-sitting-looking-far-nature-daytime.jpg", type: "image" },
+  { src: "https://files.catbox.moe/7p75cg.jpg", type: "video" }, // <-- ভিডিও
+  { src: "https://files.catbox.moe/1k4dv1.jpg", type: "image" }
 ];
 
 // নকল "লাইভ ইউজার" এর শুরুর সংখ্যা
 const STARTING_USERS = 312;
 
 // নকল নোটিফিকেশন মেসেজগুলো এখানে পরিবর্তন করুন
-const NOTIFICATION_MESSAGES = [
-  "💋 Mia just unlocked a private video",
-  "🔥 3 new members joined from Dhaka",
-  "👀 8 people viewing your profile now",
-  "💬 'Amazing content!' — new user review"
-];
+const NOTIF_NAMES = ["Jessica", "Priya", "Emily", "Riya", "Chloe", "Anjali"];
+const NOTIF_LOCATIONS = ["New York", "Dhaka", "Mumbai", "London", "Kolkata"];
+
 
 // ===================================================
 // --- মূল কোড - এখানে পরিবর্তনের প্রয়োজন নেই ---
@@ -184,23 +204,31 @@ function initAfterEnter(){
   startNotifications();
   attachSticky();
   attachExitIntent();
+  startCountdown(); // <-- নতুন ফাংশন কল
 }
 
 function populateGallery() {
   const gallery = document.getElementById('gallery');
   gallery.innerHTML = ''; // গ্যালারি খালি করা হচ্ছে
-  galleryImages.forEach(imgUrl => {
+  galleryImages.forEach(item => {
     const tile = document.createElement('div');
     tile.className = 'tile';
-    tile.dataset.full = imgUrl;
+    tile.dataset.full = item.src;
 
     const img = document.createElement('img');
-    img.src = imgUrl;
+    img.src = item.src;
     img.alt = 'Exclusive Content';
 
     const playDiv = document.createElement('div');
     playDiv.className = 'play';
-    playDiv.innerText = 'Preview';
+
+    // যদি আইটেমটি ভিডিও হয়, তাহলে প্লে আইকন দেখানো হবে
+    if (item.type === 'video') {
+      tile.classList.add('is-video');
+      playDiv.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg> Watch Clip`;
+    } else {
+      playDiv.innerText = 'Preview';
+    }
 
     tile.appendChild(img);
     tile.appendChild(playDiv);
@@ -239,10 +267,21 @@ function startLiveUsers(){
   }, 2000);
 }
 
+// নোটিফিকেশন জেনারেটর ফাংশন
+function getRandomNotification() {
+  const templates = [
+    `💋 ${NOTIF_NAMES[Math.floor(Math.random() * NOTIF_NAMES.length)]} just unlocked a private video`,
+    `🔥 3 new members joined from ${NOTIF_LOCATIONS[Math.floor(Math.random() * NOTIF_LOCATIONS.length)]}`,
+    `👀 8 people viewing your profile now`,
+    `💬 'Amazing content!' — new review from a user`
+  ];
+  return templates[Math.floor(Math.random() * templates.length)];
+}
+
 function startNotifications(){
   const feed = document.getElementById('notifFeed');
   setInterval(() => {
-    const message = NOTIFICATION_MESSAGES[Math.floor(Math.random() * NOTIFICATION_MESSAGES.length)];
+    const message = getRandomNotification();
     const div = document.createElement('div'); 
     div.className = 'notif'; 
     div.innerText = message;
@@ -265,14 +304,48 @@ function attachExitIntent(){
     if(e.clientY < 10 && !shown){
       shown = true;
       const ep = document.getElementById('exitPopup');
+      const counterEl = document.getElementById('exitCounter');
+      let spots = 12;
       ep.style.display = 'block';
+
+      // কাউন্টার কমানোর জন্য ইন্টারভ্যাল
+      const counterInterval = setInterval(() => {
+        spots--;
+        if (spots <= 3) {
+            spots = 3; // একটি নির্দিষ্ট সংখ্যায় এসে থামিয়ে দিন
+            clearInterval(counterInterval);
+        }
+        counterEl.innerText = `Spots left: ${spots}`;
+      }, 1500); // প্রতি ১.৫ সেকেন্ডে কমবে
+
       document.getElementById('exitCta').onclick = () => {
         ep.style.display = 'none';
+        clearInterval(counterInterval);
         window.open(ADSTERRA_LINK, '_blank');
       };
-      setTimeout(() => ep.style.display = 'none', 10000);
+
+      setTimeout(() => {
+        ep.style.display = 'none';
+        clearInterval(counterInterval);
+      }, 10000);
     }
   });
+}
+
+// নতুন কাউন্টডাউন টাইমার ফাংশন
+function startCountdown() {
+  const timerEl = document.getElementById('timer');
+  let time = 8 * 60 + 45; // 8 মিনিট 45 সেকেন্ড
+
+  const countdownInterval = setInterval(() => {
+    if (time <= 0) time = 8 * 60 + 45; // শেষ হলে রিসেট হবে
+
+    const minutes = Math.floor(time / 60).toString().padStart(2, '0');
+    const seconds = (time % 60).toString().padStart(2, '0');
+    
+    timerEl.textContent = `${minutes}:${seconds}`;
+    time--;
+  }, 1000);
 }
 
 </script>
