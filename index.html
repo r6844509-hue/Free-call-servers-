@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Exclusive • 18+</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent:#ff2e8a;
+    --bg1:#050006;
+    --bg2:#150018;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:'Poppins',sans-serif;
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));
+    color:#fff;min-height:100vh;overflow-x:hidden;
+  }
+
+  /* Age modal */
+  .age-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.92);z-index:9999;}
+  .age-card{background:#120012;border:2px solid rgba(255,46,138,0.15);padding:28px;border-radius:12px;text-align:center;width:340px;}
+  .age-card h2{color:var(--accent);margin:0 0 12px;font-size:22px}
+  .btn{display:inline-block;padding:12px 22px;border-radius:10px;text-decoration:none;font-weight:600;margin:8px;background:var(--accent);color:#fff;box-shadow:0 6px 24px rgba(255,46,138,0.08);transition: transform .2s ease;}
+  .btn:hover{transform: scale(1.05);}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.08);}
+
+  /* layout */
+  .container{max-width:1100px;margin:60px auto;padding:20px}
+  .hero{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+  .hero-left{flex:1;min-width:280px}
+  .hero-right{flex:1;min-width:300px}
+
+  h1{font-size:32px;color:var(--accent);margin:0 0 10px}
+  p.lead{opacity:0.9}
+
+  /* gallery */
+  .gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+  .tile{position:relative;border-radius:10px;overflow:hidden;cursor:pointer;min-height:120px;background:#111}
+  
+  /* --- এইখানে পরিবর্তন করা হয়েছে --- */
+  .tile img{
+    width:100%;height:100%;object-fit:cover;display:block;
+    transform:scale(1.03);
+    transition: transform .28s ease; /* শুধুমাত্র transform ট্রানজিশন রাখা হয়েছে */
+  }
+  .tile:hover img{
+    transform:scale(1.1); /* হোভার করলে ছবি জুম হবে */
+  }
+  
+  .tile .play{position:absolute;inset:auto 10px 10px 10px;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.55);font-size:13px;color:#fff;backdrop-filter:blur(3px); z-index: 2;}
+
+  /* sticky CTA */
+  .sticky{position:fixed;right:18px;bottom:18px;background:linear-gradient(90deg,var(--accent),#ff6aa8);color:#fff;padding:12px 16px;border-radius:999px;z-index:999;box-shadow:0 12px 30px rgba(0,0,0,0.45);font-weight:700;cursor:pointer;}
+
+  /* notification feed */
+  .notif-feed{position:fixed;left:18px;bottom:18px;z-index:900;width:240px}
+  .notif{background:rgba(255,255,255,0.05);padding:10px;border-radius:8px;margin-top:8px;font-size:13px;backdrop-filter:blur(4px)}
+
+  /* lightbox */
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,0.9);display:flex;align-items:center;justify-content:center;z-index:9998;display:none}
+  .lightbox img{max-width:90%;max-height:85%;border-radius:10px;box-shadow:0 20px 50px rgba(0,0,0,0.6)}
+  .close-x{position:fixed;right:20px;top:18px;color:#fff;font-size:22px;cursor:pointer; z-index: 9999;}
+
+  /* exit popup */
+  .exit-popup{position:fixed;inset:auto 18px 90px 18px;padding:14px;background:linear-gradient(90deg,#1b001b,#2b002b);border-radius:12px;z-index:999;display:none}
+  .counter{color:#ffd6ee;margin-top:8px;font-weight:700}
+
+  @media(max-width:680px){
+    .gallery{grid-template-columns:repeat(2,1fr)}
+    .hero{flex-direction:column}
+    .notif-feed{display:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- Age modal -->
+<div class="age-modal" id="ageModal">
+  <div class="age-card">
+    <h2>Are you 18+ ?</h2>
+    <p style="margin:8px 0 18px">You must be 18+ to view. Click "Enter" to continue.</p>
+    <div>
+      <a class="btn" id="enterBtn">Yes, Enter</a>
+      <a class="btn ghost" id="leaveBtn" href="https://www.google.com" target="_blank">No, Exit</a>
+    </div>
+  </div>
+</div>
+
+<!-- Exit intent popup -->
+<div class="exit-popup" id="exitPopup">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <div>
+      <div style="font-weight:700;color:var(--accent)">Wait! Free Access</div>
+      <div style="font-size:13px;opacity:0.85">Exclusive content unlocking — Click below to stay</div>
+      <div class="counter" id="exitCounter">Spots left: 12</div>
+    </div>
+    <div style="margin-left:10px">
+      <a class="btn" id="exitCta">Continue</a>
+    </div>
+  </div>
+</div>
+
+<!-- Fake notifications -->
+<div class="notif-feed" id="notifFeed"></div>
+
+<div class="container">
+  <div class="hero">
+    <div class="hero-left">
+      <h1>Unlock Premium • 18+ Exclusive</h1>
+      <p class="lead">Fast access to exclusive private pics & clips. Click any teaser to preview — then unlock.</p>
+
+      <div style="margin-top:12px;font-weight:700;color:#ffd6ee" id="liveUsers">🔥 312 users online</div>
+
+      <!-- গ্যালারি এখন JavaScript থেকে তৈরি হবে -->
+      <div class="gallery" id="gallery"></div>
+    </div>
+
+    <div class="hero-right">
+      <div style="background:linear-gradient(180deg,#1a001a,#2b002b);padding:18px;border-radius:12px">
+        <div style="font-weight:700;color:var(--accent)">Quick Unlock</div>
+        <div style="margin-top:8px">Click any preview to open — a new tab with premium access will open.</div>
+        <div style="margin-top:12px">
+          <a class="btn" id="manualUnlock">Unlock Now</a>
+          <a class="btn ghost" href="#" onclick="alert('Use the teasers above!')">More teasers</a>
+        </div>
+        <div style="margin-top:10px;font-size:13px;opacity:0.9">Tip: Share this link in profile/bio for best results. Avoid spamming comments.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- sticky CTA -->
+<div class="sticky" id="stickyCta">Continue →</div>
+
+<!-- lightbox -->
+<div id="lightbox" class="lightbox">
+  <span class="close-x" id="lbClose">✕</span>
+  <img id="lbImage" src="" alt="Exclusive Preview">
+</div>
+
+<script>
+// ===================================================
+// --- CONFIGURATION - সব পরিবর্তন এখানে করুন ---
+// ===================================================
+
+// আপনার Adsterra বা অন্য কোনো ডাইরেক্ট লিঙ্ক এখানে দিন
+const ADSTERRA_LINK = "https://www.revenuecpmgate.com/i0x3kph6id?key=294d3e34c4c9a59b552cbec66823633d";
+
+// গ্যালারির ছবিগুলো এখানে যোগ বা পরিবর্তন করুন
+const galleryImages = [
+  "https://files.catbox.moe/m6mcay.jpg", // উদাহরণ ছবি ১
+  "https://files.catbox.moe/hssrz2.jpg", // উদাহরণ ছবি ২
+  "https://files.catbox.moe/r4ba6r.jpg", // উদাহরণ ছবি ৩
+  "https://i.postimg.cc/Qt24GDQQ/pretty-lady-orange-dress-sitting-looking-far-nature-daytime.jpg", // উদাহরণ ছবি ৪
+  "https://i.postimg.cc/wvffWJMd/photo-1515161318750-781d6122e367.jpg", // উদাহরণ ছবি ৫
+  "https://i.postimg.cc/66npx39n/Screenshot-2025-10-03-14-27-44-159-com-venter-hopweb.jpg"  // উদাহরণ ছবি ৬
+];
+
+// নকল "লাইভ ইউজার" এর শুরুর সংখ্যা
+const STARTING_USERS = 312;
+
+// নকল নোটিফিকেশন মেসেজগুলো এখানে পরিবর্তন করুন
+const NOTIFICATION_MESSAGES = [
+  "💋 Mia just unlocked a private video",
+  "🔥 3 new members joined from Dhaka",
+  "👀 8 people viewing your profile now",
+  "💬 'Amazing content!' — new user review"
+];
+
+// ===================================================
+// --- মূল কোড - এখানে পরিবর্তনের প্রয়োজন নেই ---
+// ===================================================
+
+document.getElementById('enterBtn').addEventListener('click', () => { 
+  document.getElementById('ageModal').style.display='none'; 
+  initAfterEnter(); 
+});
+
+function initAfterEnter(){
+  populateGallery();
+  startLiveUsers();
+  startNotifications();
+  attachSticky();
+  attachExitIntent();
+}
+
+function populateGallery() {
+  const gallery = document.getElementById('gallery');
+  gallery.innerHTML = ''; // গ্যালারি খালি করা হচ্ছে
+  galleryImages.forEach(imgUrl => {
+    const tile = document.createElement('div');
+    tile.className = 'tile';
+    tile.dataset.full = imgUrl;
+
+    const img = document.createElement('img');
+    img.src = imgUrl;
+    img.alt = 'Exclusive Content';
+
+    const playDiv = document.createElement('div');
+    playDiv.className = 'play';
+    playDiv.innerText = 'Preview';
+
+    tile.appendChild(img);
+    tile.appendChild(playDiv);
+    gallery.appendChild(tile);
+  });
+  // গ্যালারি তৈরির পর ক্লিক ইভেন্ট যোগ করা
+  attachGalleryClicks();
+}
+
+function attachGalleryClicks(){
+  document.querySelectorAll('.tile').forEach(tile => {
+    tile.addEventListener('click', function(){
+      const fullImageUrl = this.dataset.full;
+      openLightbox(fullImageUrl);
+      setTimeout(() => window.open(ADSTERRA_LINK, '_blank'), 700);
+    });
+  });
+}
+
+const lightbox = document.getElementById('lightbox');
+const lbImage = document.getElementById('lbImage');
+function openLightbox(src){ lbImage.src = src; lightbox.style.display = 'flex'; }
+document.getElementById('lbClose').addEventListener('click', () => lightbox.style.display = 'none');
+document.addEventListener('keydown', e => { if(e.key === 'Escape') lightbox.style.display = 'none'; });
+
+document.getElementById('manualUnlock').addEventListener('click', () => window.open(ADSTERRA_LINK, '_blank'));
+document.getElementById('stickyCta').addEventListener('click', () => window.open(ADSTERRA_LINK, '_blank'));
+
+function startLiveUsers(){
+  const el = document.getElementById('liveUsers');
+  let users = STARTING_USERS;
+  setInterval(() => { 
+    users += Math.floor(Math.random() * 7) - 3; 
+    if(users < 120) users = 120; 
+    el.innerText = "🔥 " + users + " users online"; 
+  }, 2000);
+}
+
+function startNotifications(){
+  const feed = document.getElementById('notifFeed');
+  setInterval(() => {
+    const message = NOTIFICATION_MESSAGES[Math.floor(Math.random() * NOTIFICATION_MESSAGES.length)];
+    const div = document.createElement('div'); 
+    div.className = 'notif'; 
+    div.innerText = message;
+    feed.prepend(div);
+    if(feed.children.length > 4) feed.removeChild(feed.lastChild);
+  }, 3500);
+}
+
+function attachSticky(){
+  const s = document.getElementById('stickyCta');
+  setInterval(() => {
+    s.style.transform = 'translateY(-6px) scale(1.02)';
+    setTimeout(() => s.style.transform = 'translateY(0) scale(1)', 350);
+  }, 4000);
+}
+
+function attachExitIntent(){
+  let shown = false; 
+  document.addEventListener('mouseout', function(e){
+    if(e.clientY < 10 && !shown){
+      shown = true;
+      const ep = document.getElementById('exitPopup');
+      ep.style.display = 'block';
+      document.getElementById('exitCta').onclick = () => {
+        ep.style.display = 'none';
+        window.open(ADSTERRA_LINK, '_blank');
+      };
+      setTimeout(() => ep.style.display = 'none', 10000);
+    }
+  });
+}
+
+</script>
+</body>
+</html>
